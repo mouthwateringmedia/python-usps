@@ -36,13 +36,6 @@ class USPSService(object):
         """
         data = {'XML':ET.tostring(xml),
                 'API':self.API}
-        print '\n\n\n',
-        import subprocess
-        p = subprocess.Popen(['xmlindent'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        p.stdin.write(data['XML'].replace('>', '>\n'))
-        p.stdin.close()
-        print p.stdout.read()
-        print '\n\n\n', 'API:', data['API']
         response = urllib2.urlopen(self.url, utf8urlencode(data))
         root = ET.parse(response).getroot()
         if root.tag == 'Error':
