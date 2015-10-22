@@ -18,11 +18,11 @@ class USPSService(object):
     SERVICE_NAME = ''
     CHILD_XML_NAME = ''
     PARAMETERS = []
-    
+
     @property
     def API(self):
         return self.SERVICE_NAME
-        
+
     def __init__(self, url, user_id, password):
         self.url = url
         self.user_id = user_id
@@ -36,6 +36,13 @@ class USPSService(object):
         """
         data = {'XML':ET.tostring(xml),
                 'API':self.API}
+        print '\n\n\n',
+        import subprocess
+        p = subprocess.Popen(['xmlindent'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        p.stdin.write(data['XML'].replace('>', '>\n'))
+        p.stdin.close()
+        print p.stdout.read()
+        print '\n\n\n', 'API:', data['API']
         response = urllib2.urlopen(self.url, utf8urlencode(data))
         root = ET.parse(response).getroot()
         if root.tag == 'Error':
@@ -44,7 +51,7 @@ class USPSService(object):
         if error:
             raise USPSXMLError(error)
         return root
-    
+
     def parse_xml(self, xml):
         """
         Parse the response from USPS into a dictionary
@@ -55,7 +62,7 @@ class USPSService(object):
         for item in xml.getchildren():#xml.findall(self.SERVICE_NAME+'Response'):
             items.append(xmltodict(item))
         return items
-    
+
     def make_xml(self, data, user_id, password=None):
         """
         Transform the data provided to an XML fragment
@@ -73,12 +80,12 @@ class USPSService(object):
             root.append(data_xml)
             index += 1
         return root
-    
+
     def execute(self,data, user_id=None, password=None):
         """
-        Create XML from data dictionary, submit it to 
+        Create XML from data dictionary, submit it to
         the USPS API and parse the response
-        
+
         @param user_id: a USPS user id
         @param data: the data to serialize and submit
         @return: the response from USPS as a dictionary
@@ -88,6 +95,6 @@ class USPSService(object):
 
         if password is None:
             password = self.password
-            
+
         xml = self.make_xml(data, user_id, password)
         return self.parse_xml(self.submit_xml(xml))
